@@ -12,6 +12,10 @@ Datasets:
 Articles:
 - https://ieeexplore.ieee.org/abstract/document/935854
 
+Frameworks:
+-Tensorflow
+-kivy
+
 Roles:
 
 1. Debu Andrei - UI
