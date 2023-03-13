@@ -124,3 +124,5 @@ dmypy.json
 .pyre/
 /img/Fruit_Flower_Veg.zip
 /img/Fruit_Flower_Veg/Fruit_Flower_Veg/
+
+.idea/
