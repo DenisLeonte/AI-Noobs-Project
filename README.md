@@ -16,6 +16,7 @@ Articles:
 Frameworks:
 -Tensorflow
 -kivy
+-Pillow (PIL fork)
 
 Roles:
 
