@@ -14,7 +14,7 @@ Articles:
 
 Frameworks:
 -Tensorflow
--kivy
+-PyQt6
 
 Roles:
 
