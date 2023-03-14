@@ -8,42 +8,16 @@ from tensorflow import keras
 from keras import layers
 from keras.models import Sequential
 
-start_time = time.time()
-
 img_height = 100
 img_width = 100
 batch_size = 32
-random.seed(time.time())
-seed = random.randint(0, 999999)
 
-img_path = "img/Fruit_Flower_Veg"
-
-# take 80% of the images and use them for training
-train_ds = tf.keras.utils.image_dataset_from_directory(
-    img_path,
-    validation_split=0.2,
-    subset="training",
-    seed=seed,
-    image_size=(img_height, img_width),
-    batch_size=batch_size
-)
-
-# take 20% and use them for validation
-val_ds = tf.keras.utils.image_dataset_from_directory(
-    img_path,
-    validation_split=0.2,
-    subset="validation",
-    seed=seed,
-    image_size=(img_height, img_width),
-    batch_size=batch_size
-)
-
-def train(train_ds, val_ds):
+def train(train_ds, val_ds, epochs, plot=False):
     f = open('models/version.txt')
-    i = int(f.readline())
+    ver_number = int(f.readline())
     f.close()
     f = open('models/version.txt', 'w')
-    f.write(f"{i+1}")
+    f.write(f"{ver_number+1}")
     f.close()
 
     class_names = train_ds.class_names
@@ -99,7 +73,6 @@ def train(train_ds, val_ds):
     model.summary()
 
     # start training the neural network
-    epochs=1
     history = model.fit(
       train_ds,
       validation_data=val_ds,
@@ -107,53 +80,29 @@ def train(train_ds, val_ds):
     )
 
     # plot some stuff based on the number of epochs
-    acc = history.history['accuracy']
-    val_acc = history.history['val_accuracy']
+    if plot:
+        acc = history.history['accuracy']
+        val_acc = history.history['val_accuracy']
 
-    loss = history.history['loss']
-    val_loss = history.history['val_loss']
+        loss = history.history['loss']
+        val_loss = history.history['val_loss']
 
-    epochs_range = range(epochs)
+        epochs_range = range(epochs)
 
-    plt.figure(figsize=(8, 8))
-    plt.subplot(1, 2, 1)
-    plt.plot(epochs_range, acc, label='Training Accuracy')
-    plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-    plt.legend(loc='lower right')
-    plt.title('Training and Validation Accuracy')
+        plt.figure(figsize=(8, 8))
+        plt.subplot(1, 2, 1)
+        plt.plot(epochs_range, acc, label='Training Accuracy')
+        plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+        plt.legend(loc='lower right')
+        plt.title('Training and Validation Accuracy')
 
-    plt.subplot(1, 2, 2)
-    plt.plot(epochs_range, loss, label='Training Loss')
-    plt.plot(epochs_range, val_loss, label='Validation Loss')
-    plt.legend(loc='upper right')
-    plt.title('Training and Validation Loss')
-    plt.show()
+        plt.subplot(1, 2, 2)
+        plt.plot(epochs_range, loss, label='Training Loss')
+        plt.plot(epochs_range, val_loss, label='Validation Loss')
+        plt.legend(loc='upper right')
+        plt.title('Training and Validation Loss')
+        plt.show()
 
-    model.save(f'models/model_{i}.h5')
+    model.save(f'models/model_{ver_number}.h5')
 
     return model
-
-#uncomment this when you want to train the AI
-model = train(train_ds, val_ds)
-
-#comment this when you want to train the AI
-#model = tf.keras.models.load_model("models/model_.h5")
-
-class_names = train_ds.class_names
-
-# import a random apple picture and try to predict it using the neural network
-apple_path = "img/ex-image.jpg" #is a banana
-
-img = tf.keras.utils.load_img(
-    apple_path, target_size=(img_height, img_width)
-)
-img_array = tf.keras.utils.img_to_array(img)
-img_array = tf.expand_dims(img_array, 0) # Create a batch
-
-predictions = model.predict(img_array)
-score = tf.nn.softmax(predictions[0])
-
-print(
-    "This image most likely belongs to {} with a {:.2f} percent confidence."
-    .format(class_names[np.argmax(score)], 100 * np.max(score))
-)
