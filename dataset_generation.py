@@ -19,6 +19,7 @@ seed = random.randint(0, 999999)
 
 img_path = "img/Fruit_Flower_Veg"
 
+# take 80% of the images and use them for training
 train_ds = tf.keras.utils.image_dataset_from_directory(
     img_path,
     validation_split=0.2,
@@ -28,6 +29,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     batch_size=batch_size
 )
 
+# take 20% and use them for validation
 val_ds = tf.keras.utils.image_dataset_from_directory(
     img_path,
     validation_split=0.2,
@@ -44,6 +46,7 @@ print(f"{end_time - start_time} seconds elapsed")
 class_names = train_ds.class_names
 #print(class_names)
 
+# Plot a bunch of pictures to visualize the data
 plt.figure(figsize=(10, 10))
 for images, labels in train_ds.take(1):
     for i in range(9):
@@ -53,6 +56,7 @@ for images, labels in train_ds.take(1):
         plt.axis("off")
 #plt.show()
 
+# buffered prefetching, so you can yield data from disk without having I/O become blocking
 AUTOTUNE = tf.data.AUTOTUNE
 
 train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
@@ -66,6 +70,7 @@ first_image = image_batch[0]
 
 num_classes = len(class_names)
 
+# build the neural network model
 model = Sequential([
   layers.Rescaling(1./255, input_shape=(img_height, img_width, 3)),
   layers.Conv2D(16, (5, 5), strides=(1, 1), padding='same', activation='relu'),
@@ -83,12 +88,14 @@ model = Sequential([
   layers.Dropout(0.2)
 ])
 
+# compile the model
 model.compile(optimizer='adam',
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
 
 model.summary()
 
+# start training the neural network
 epochs=1
 history = model.fit(
   train_ds,
@@ -96,6 +103,7 @@ history = model.fit(
   epochs=epochs
 )
 
+# plot some stuff based on the number of epochs
 acc = history.history['accuracy']
 val_acc = history.history['val_accuracy']
 
@@ -118,6 +126,7 @@ plt.legend(loc='upper right')
 plt.title('Training and Validation Loss')
 plt.show()
 
+# import a random apple picture and try to predict it using the neural network
 apple_path = "img/apple_example.jpg"
 
 img = tf.keras.utils.load_img(
