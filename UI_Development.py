@@ -32,20 +32,6 @@ class Window(QDialog):
         self.label.setPixmap(QPixmap(pixmap))
         self.resize(pixmap.width(), pixmap.height())
 
-    def UIComponents(self, printText):
-        myFont = QFont()
-        myFont.setBold(True)
-        label = QLabel(printText, self)
-        label.setFont(myFont)
-        label.move(150, 25)
-
-        vbox = QVBoxLayout()
-        addButton = QPushButton("Browse image", self)
-        addButton.setGeometry(30, 20, 100, 30)
-        addButton.clicked.connect(self.browseImage)
-
-        vbox.addWidget(addButton)
-
 
 text = "Print test"
 App = QApplication(sys.argv)
