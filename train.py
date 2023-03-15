@@ -34,18 +34,18 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
 )
 
 
-epochs = 1
+epochs = 100
 
 #uncomment this when you want to train the AI
 model = train(train_ds, val_ds, epochs)
 
 #comment this when you want to train the AI
-#model = tf.keras.models.load_model("models/model_.h5")
+#model = tf.keras.models.load_model("models/model_3.h5")
 
 class_names = train_ds.class_names
 
 # import a random apple picture and try to predict it using the neural network
-apple_path = "img/ex-image.jpg" #is a banana
+apple_path = "img/index.jpg" #is a banana
 
 
 img = tf.keras.utils.load_img(

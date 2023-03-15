@@ -10,7 +10,10 @@ from keras.models import Sequential
 
 img_height = 100
 img_width = 100
-batch_size = 32
+batch_size = 64
+
+def checkpoint_name(epoch, logs):
+    return "models/checkpoints/model_weights_epoch{}_valloss{:.4f}.h5".format(epoch, logs['val_loss'])
 
 def train(train_ds, val_ds, epochs, plot=False):
     f = open('models/version.txt')
@@ -72,11 +75,19 @@ def train(train_ds, val_ds, epochs, plot=False):
 
     model.summary()
 
+    model_checkpoints = tf.keras.callbacks.ModelCheckpoint(
+        filepath="models/checkpoints/model_epoch_{epoch:02d}.h5",
+        monitor='val_loss',
+        save_freq='epoch',
+        verbose=0
+    )
+
     # start training the neural network
     history = model.fit(
       train_ds,
       validation_data=val_ds,
-      epochs=epochs
+      epochs=epochs,
+      callbacks=[model_checkpoints]
     )
 
     # plot some stuff based on the number of epochs
