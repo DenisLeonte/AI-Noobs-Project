@@ -19,7 +19,7 @@ def verify(epochs, image_path, correct_answer = ""):
 	for i in range(0, epochs):
 		predictions = model_list[i].predict(img_array, verbose=0)
 		score = tf.nn.softmax(predictions[0])
-		if correct_answer == "" or class_names[np.argmax(score)] == correct_answer:
+		if correct_answer == "" or class_names[np.argmax(score)].split(" ")[0] == correct_answer:
 			print(
 				"Epoch {:02d}: This image most likely belongs to {} with a {:.2f} percent confidence."
 				.format(i+1,class_names[np.argmax(score)], 100 * np.max(score))
@@ -28,4 +28,4 @@ def verify(epochs, image_path, correct_answer = ""):
 	if found == False:
 		print("No models were correct!")
 
-verify(4, "img/red_pepper1.jpg")
+verify(40, "img/grapes-purple.jpg")
