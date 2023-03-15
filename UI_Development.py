@@ -11,14 +11,15 @@ class Window(QMainWindow):
         self.setWindowTitle("Test UI")
         self.view = QListWidget()
         self.setGeometry(100, 100, 800, 600)
+        self.setWindowIcon(QIcon("AI.jpg"))
         self.UIComponents(text)
         self.show()
 
-    def UIComponents(self, text):
+    def UIComponents(self, printText):
         addButton = QPushButton("Add image(s)", self)
         addButton.setGeometry(30, 30, 100, 30)
         addButton.clicked.connect(self.clickToAddPhoto)
-        label = QLabel(text, self)
+        label = QLabel(printText, self)
         label.move(150, 30)
 
     def clickToAddPhoto(self):
@@ -43,9 +44,10 @@ class Window(QMainWindow):
             item.setToolTip(path)
             item.setSizeHint(size)
             self.view.addItem(item)
+            return self.view
 
 
-text = "Print test";
+text = "Print test"
 App = QApplication(sys.argv)
 window = Window()
 sys.exit(App.exec())
