@@ -1,3 +1,5 @@
+import logging
+logging.getLogger("tensorflow").setLevel(logging.ERROR)
 import tensorflow as tf
 import numpy as np
 import time
@@ -96,7 +98,7 @@ def train(train_ds, val_ds, epochs, plot=False):
     model.summary()
 
     model_checkpoints = tf.keras.callbacks.ModelCheckpoint(
-        filepath="models/checkpoints/model_epoch_{epoch:02d}.h5",
+        filepath="models/checkpoints_HSV/model_epoch_{epoch:02d}.h5",
         monitor='val_loss',
         save_freq='epoch',
         verbose=0

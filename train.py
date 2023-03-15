@@ -1,3 +1,5 @@
+import logging
+logging.getLogger("tensorflow").setLevel(logging.ERROR)
 from dataset_generation import img_height, img_width, batch_size, train
 import tensorflow as tf
 import numpy as np
@@ -34,7 +36,7 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
 )
 
 
-epochs = 3
+epochs = 50
 
 #uncomment this when you want to train the AI
 model = train(train_ds, val_ds, epochs)

@@ -1,3 +1,5 @@
+import logging
+logging.getLogger("tensorflow").setLevel(logging.ERROR)
 import tensorflow as tf
 import time
 import random
