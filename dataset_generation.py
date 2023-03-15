@@ -15,6 +15,38 @@ batch_size = 64
 def checkpoint_name(epoch, logs):
     return "models/checkpoints/model_weights_epoch{}_valloss{:.4f}.h5".format(epoch, logs['val_loss'])
 
+def network(num_classes):
+    data_augmentation = keras.Sequential(
+        [
+            layers.RandomFlip("horizontal",
+                              input_shape=(img_height,
+                                           img_width,
+                                           3)),
+            layers.RandomRotation(0.1),
+            layers.RandomZoom(0.1),
+        ]
+    )
+
+    # build the neural network model
+    model = Sequential([
+        data_augmentation,
+        layers.Rescaling(1. / 255, input_shape=(img_height, img_width, 3)),
+        layers.Conv2D(16, (5, 5), strides=(1, 1), padding='same', activation='relu'),
+        layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
+        layers.Conv2D(32, (5, 5), strides=(1, 1), padding='same', activation='relu'),
+        layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
+        layers.Conv2D(64, (5, 5), strides=(1, 1), padding='same', activation='relu'),
+        layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
+        layers.Conv2D(128, (5, 5), strides=(1, 1), padding='same', activation='relu'),
+        layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
+        layers.Flatten(),
+        layers.Dense(1024, activation='relu'),
+        layers.Dropout(0.2),
+        layers.Dense(num_classes),
+        layers.Dropout(0.2)
+    ])
+    return model
+
 def train(train_ds, val_ds, epochs, plot=False):
     f = open('models/version.txt')
     ver_number = int(f.readline())
@@ -25,16 +57,6 @@ def train(train_ds, val_ds, epochs, plot=False):
 
     class_names = train_ds.class_names
     #print(class_names)
-
-    # Plot a bunch of pictures to visualize the data
-    plt.figure(figsize=(10, 10))
-    for images, labels in train_ds.take(1):
-        for i in range(9):
-            ax = plt.subplot(3, 3, i + 1)
-            plt.imshow(images[i].numpy().astype("uint8"))
-            plt.title(class_names[labels[i]])
-            plt.axis("off")
-    #plt.show()
 
     # buffered prefetching, so you can yield data from disk without having I/O become blocking
     AUTOTUNE = tf.data.AUTOTUNE
@@ -50,23 +72,7 @@ def train(train_ds, val_ds, epochs, plot=False):
 
     num_classes = len(class_names)
 
-    # build the neural network model
-    model = Sequential([
-      layers.Rescaling(1./255, input_shape=(img_height, img_width, 3)),
-      layers.Conv2D(16, (5, 5), strides=(1, 1), padding='same', activation='relu'),
-      layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
-      layers.Conv2D(32, (5, 5), strides=(1, 1), padding='same', activation='relu'),
-      layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
-      layers.Conv2D(64, (5, 5), strides=(1, 1), padding='same', activation='relu'),
-      layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
-      layers.Conv2D(128, (5, 5), strides=(1, 1), padding='same', activation='relu'),
-      layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
-      layers.Flatten(),
-      layers.Dense(1024, activation='relu'),
-      layers.Dropout(0.2),
-      layers.Dense(num_classes),
-      layers.Dropout(0.2)
-    ])
+    model = network(num_classes)
 
     # compile the model
     model.compile(optimizer='adam',

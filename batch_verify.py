@@ -12,7 +12,7 @@ def verify(epochs, image_path, correct_answer = ""):
 
 	model_list = []
 	for i in range(1, epochs+1):
-		model_list.append(tf.keras.models.load_model(f"models/checkpoints/model_epoch_{i:02d}.h5"))
+		model_list.append(tf.keras.models.load_model(f"models/checkpoints/model_epoch_{i:02d}.h5", compile=False))
 	img = tf.keras.utils.load_img(image_path, target_size=(img_height, img_width))
 	img_array = tf.keras.utils.img_to_array(img)
 	img_array = tf.expand_dims(img_array, 0)
@@ -28,4 +28,4 @@ def verify(epochs, image_path, correct_answer = ""):
 	if found == False:
 		print("No models were correct!")
 
-verify(4, "img/red_pepper1.jpg")
+verify(40, "img/download.jpg")
