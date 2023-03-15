@@ -34,7 +34,7 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
 )
 
 
-epochs = 100
+epochs = 3
 
 #uncomment this when you want to train the AI
 model = train(train_ds, val_ds, epochs)
