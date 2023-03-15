@@ -1,6 +1,5 @@
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
-from PyQt6.QtCore import *
 import sys
 
 
@@ -46,30 +45,6 @@ class Window(QDialog):
         addButton.clicked.connect(self.browseImage)
 
         vbox.addWidget(addButton)
-
-    # def clickToAddPhoto(self):
-    #     paths, _ = QFileDialog.getOpenFileName(self, 'Select image(s)', '', 'Images (*.png *,jpg *jpeg)')
-    #     size = self.view.iconSize()
-    #     for path in paths:
-    #         source = QPixmap(path)
-    #         if source.isNull():
-    #             continue
-    #         if source.width() > size.width() or source.height() > size.height:
-    #             source = source.scaled(size)
-    #         square = QPixmap(size)
-    #         qp = QPainter(square)
-    #         rect = source.rect()
-    #         rect.moveCenter(square.rect().center())
-    #         qp.drawPixmap(rect, source)
-    #         qp.end()
-    #
-    #         name = QFileInfo(path).baseName()
-    #         item = QListWidgetItem(name)
-    #         item.setIcon(QIcon(square))
-    #         item.setToolTip(path)
-    #         item.setSizeHint(size)
-    #         self.view.addItem(item)
-    #         return self.view
 
 
 text = "Print test"
