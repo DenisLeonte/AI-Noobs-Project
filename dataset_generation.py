@@ -2,11 +2,13 @@ import tensorflow as tf
 import numpy as np
 import time
 import random
+import pandas as pd
 
 from matplotlib import pyplot as plt
 from tensorflow import keras
 from keras import layers
 from keras.models import Sequential
+from keras.callbacks import CSVLogger
 
 img_height = 100
 img_width = 100
@@ -14,6 +16,38 @@ batch_size = 64
 
 def checkpoint_name(epoch, logs):
     return "models/checkpoints/model_weights_epoch{}_valloss{:.4f}.h5".format(epoch, logs['val_loss'])
+
+def network(num_classes):
+    data_augmentation = keras.Sequential(
+        [
+            layers.RandomFlip("horizontal",
+                              input_shape=(img_height,
+                                           img_width,
+                                           3)),
+            layers.RandomRotation(0.1),
+            layers.RandomZoom(0.1),
+        ]
+    )
+
+    # build the neural network model
+    model = Sequential([
+        data_augmentation,
+        layers.Rescaling(1. / 255, input_shape=(img_height, img_width, 3)),
+        layers.Conv2D(16, (5, 5), strides=(1, 1), padding='same', activation='relu'),
+        layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
+        layers.Conv2D(32, (5, 5), strides=(1, 1), padding='same', activation='relu'),
+        layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
+        layers.Conv2D(64, (5, 5), strides=(1, 1), padding='same', activation='relu'),
+        layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
+        layers.Conv2D(128, (5, 5), strides=(1, 1), padding='same', activation='relu'),
+        layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
+        layers.Flatten(),
+        layers.Dense(1024, activation='relu'),
+        layers.Dropout(0.2),
+        layers.Dense(num_classes),
+        layers.Dropout(0.2)
+    ])
+    return model
 
 def train(train_ds, val_ds, epochs, plot=False):
     f = open('models/version.txt')
@@ -25,16 +59,6 @@ def train(train_ds, val_ds, epochs, plot=False):
 
     class_names = train_ds.class_names
     #print(class_names)
-
-    # Plot a bunch of pictures to visualize the data
-    plt.figure(figsize=(10, 10))
-    for images, labels in train_ds.take(1):
-        for i in range(9):
-            ax = plt.subplot(3, 3, i + 1)
-            plt.imshow(images[i].numpy().astype("uint8"))
-            plt.title(class_names[labels[i]])
-            plt.axis("off")
-    #plt.show()
 
     # buffered prefetching, so you can yield data from disk without having I/O become blocking
     AUTOTUNE = tf.data.AUTOTUNE
@@ -50,23 +74,7 @@ def train(train_ds, val_ds, epochs, plot=False):
 
     num_classes = len(class_names)
 
-    # build the neural network model
-    model = Sequential([
-      layers.Rescaling(1./255, input_shape=(img_height, img_width, 3)),
-      layers.Conv2D(16, (5, 5), strides=(1, 1), padding='same', activation='relu'),
-      layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
-      layers.Conv2D(32, (5, 5), strides=(1, 1), padding='same', activation='relu'),
-      layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
-      layers.Conv2D(64, (5, 5), strides=(1, 1), padding='same', activation='relu'),
-      layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
-      layers.Conv2D(128, (5, 5), strides=(1, 1), padding='same', activation='relu'),
-      layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
-      layers.Flatten(),
-      layers.Dense(1024, activation='relu'),
-      layers.Dropout(0.2),
-      layers.Dense(num_classes),
-      layers.Dropout(0.2)
-    ])
+    model = network(num_classes)
 
     # compile the model
     model.compile(optimizer='adam',
@@ -83,37 +91,43 @@ def train(train_ds, val_ds, epochs, plot=False):
     )
 
     # start training the neural network
+    csv_logger = CSVLogger('training.log', separator=',', append=False)
     history = model.fit(
       train_ds,
       validation_data=val_ds,
       epochs=epochs,
-      callbacks=[model_checkpoints]
+      callbacks=[model_checkpoints, csv_logger]
     )
 
-    # plot some stuff based on the number of epochs
+    # plot some data
     if plot:
-        acc = history.history['accuracy']
-        val_acc = history.history['val_accuracy']
-
-        loss = history.history['loss']
-        val_loss = history.history['val_loss']
-
-        epochs_range = range(epochs)
-
-        plt.figure(figsize=(8, 8))
-        plt.subplot(1, 2, 1)
-        plt.plot(epochs_range, acc, label='Training Accuracy')
-        plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-        plt.legend(loc='lower right')
-        plt.title('Training and Validation Accuracy')
-
-        plt.subplot(1, 2, 2)
-        plt.plot(epochs_range, loss, label='Training Loss')
-        plt.plot(epochs_range, val_loss, label='Validation Loss')
-        plt.legend(loc='upper right')
-        plt.title('Training and Validation Loss')
-        plt.show()
+        plot_data(epochs)
 
     model.save(f'models/model_{ver_number}.h5')
 
     return model
+
+def plot_data(epochs):
+    log_data = pd.read_csv('training.log', sep=',', engine='python')
+
+    acc = log_data['accuracy']
+    val_acc = log_data['val_accuracy']
+
+    loss = log_data['loss']
+    val_loss = log_data['val_loss']
+
+    epochs_range = range(epochs)
+
+    plt.figure(figsize=(8, 8))
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs_range, acc, label='Training Accuracy')
+    plt.plot(epochs_range, val_acc, label='Validation Accuracy')
+    plt.legend(loc='lower right')
+    plt.title('Training and Validation Accuracy')
+
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs_range, loss, label='Training Loss')
+    plt.plot(epochs_range, val_loss, label='Validation Loss')
+    plt.legend(loc='upper right')
+    plt.title('Training and Validation Loss')
+    plt.show()
