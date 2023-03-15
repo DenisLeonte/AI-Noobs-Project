@@ -14,6 +14,15 @@ img_height = 100
 img_width = 100
 batch_size = 64
 
+
+def preprocess_image(image, label):
+  # Convert image to float32 and scale pixel values to [0, 1]
+  image = tf.image.convert_image_dtype(image, tf.float32)
+  # Convert image to HSV format
+  image = tf.image.rgb_to_hsv(image)
+  return image, label
+
+
 def checkpoint_name(epoch, logs):
     return "models/checkpoints/model_weights_epoch{}_valloss{:.4f}.h5".format(epoch, logs['val_loss'])
 
@@ -66,6 +75,9 @@ def train(train_ds, val_ds, epochs, plot=False):
     train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
     val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
+    train_ds = train_ds.map(preprocess_image)
+    val_ds = val_ds.map(preprocess_image)
+
     normalization_layer = layers.Rescaling(1./255)
 
     normalized_ds = train_ds.map(lambda x, y: (normalization_layer(x), y))
@@ -103,7 +115,7 @@ def train(train_ds, val_ds, epochs, plot=False):
     if plot:
         plot_data(epochs)
 
-    model.save(f'models/model_{ver_number}.h5')
+    model.save(f'models/model_HSV_{ver_number}.h5')
 
     return model
 
