@@ -145,3 +145,5 @@ def plot_data(epochs):
     plt.legend(loc='upper right')
     plt.title('Training and Validation Loss')
     plt.show()
+
+plot_data(27)
