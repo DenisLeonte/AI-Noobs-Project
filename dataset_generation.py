@@ -1,6 +1,8 @@
 import logging
 logging.getLogger("tensorflow").setLevel(logging.ERROR)
 import tensorflow as tf
+import tensorboard as tb
+from datetime import datetime
 import numpy as np
 import time
 import random
@@ -17,12 +19,10 @@ img_width = 100
 batch_size = 64
 
 
-def preprocess_image(image, label):
-  # Convert image to float32 and scale pixel values to [0, 1]
-  image = tf.image.convert_image_dtype(image, tf.float32)
-  # Convert image to HSV format
-  image = tf.image.rgb_to_hsv(image)
-  return image, label
+def augment_image(img):
+    img = tf.image.random_saturation(img, 0.9, 1.2)
+    img = tf.image.random_hue(img, 0.02)
+    return img
 
 
 def checkpoint_name(epoch, logs):
@@ -36,7 +36,7 @@ def network(num_classes):
                                            img_width,
                                            3)),
             layers.RandomRotation(0.1),
-            layers.RandomZoom(0.1),
+            layers.RandomZoom(0.1)
         ]
     )
 
@@ -44,16 +44,16 @@ def network(num_classes):
     model = Sequential([
         data_augmentation,
         layers.Rescaling(1. / 255, input_shape=(img_height, img_width, 3)),
-        layers.Conv2D(16, (5, 5), strides=(1, 1), padding='same', activation='relu'),
+        layers.Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
-        layers.Conv2D(32, (5, 5), strides=(1, 1), padding='same', activation='relu'),
+        layers.Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
         layers.Conv2D(64, (5, 5), strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
         layers.Conv2D(128, (5, 5), strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
         layers.Flatten(),
-        layers.Dense(1024, activation='relu'),
+        layers.Dense(1024, activation=tf.keras.activations.relu),
         layers.Dropout(0.2),
         layers.Dense(num_classes),
         layers.Dropout(0.2)
@@ -77,8 +77,8 @@ def train(train_ds, val_ds, epochs, plot=False):
     train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
     val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
-    train_ds = train_ds.map(preprocess_image)
-    val_ds = val_ds.map(preprocess_image)
+    #train_ds = train_ds.map(augment_image)
+    #val_ds = val_ds.map(augment_image)
 
     normalization_layer = layers.Rescaling(1./255)
 
@@ -98,11 +98,14 @@ def train(train_ds, val_ds, epochs, plot=False):
     model.summary()
 
     model_checkpoints = tf.keras.callbacks.ModelCheckpoint(
-        filepath="models/checkpoints_HSV/model_epoch_{epoch:02d}.h5",
+        filepath="models/checkpoints_RGB_1/model_epoch_{epoch:02d}.h5",
         monitor='val_loss',
         save_freq='epoch',
         verbose=0
     )
+
+    log_dir = "boards/"+ datetime.now().strftime("%Y%m%d-%H%M%S")
+    tensorboard_callback=keras.callbacks.TensorBoard(log_dir=log_dir,histogram_freq=1)
 
     # start training the neural network
     csv_logger = CSVLogger('training.log', separator=',', append=False)
@@ -110,14 +113,14 @@ def train(train_ds, val_ds, epochs, plot=False):
       train_ds,
       validation_data=val_ds,
       epochs=epochs,
-      callbacks=[model_checkpoints, csv_logger]
+      callbacks=[model_checkpoints, csv_logger, tensorboard_callback]
     )
 
     # plot some data
     if plot:
         plot_data(epochs)
 
-    model.save(f'models/model_HSV_{ver_number}.h5')
+    model.save(f'models/model_{ver_number}.h5')
 
     return model
 
@@ -146,4 +149,4 @@ def plot_data(epochs):
     plt.title('Training and Validation Loss')
     plt.show()
 
-plot_data(27)
+#plot_data(32)
