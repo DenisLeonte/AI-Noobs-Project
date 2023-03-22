@@ -1,6 +1,6 @@
 import logging
 logging.getLogger("tensorflow").setLevel(logging.ERROR)
-from dataset_generation import img_height, img_width, batch_size, train
+from dataset_generation import img_height, img_width, batch_size, train, resume_training
 import tensorflow as tf
 import numpy as np
 import time
@@ -35,31 +35,36 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
     batch_size=batch_size
 )
 
+def train(epochs):
 
-epochs = 500
+    #uncomment this when you want to train the AI
+    model = train(train_ds, val_ds, epochs)
 
-#uncomment this when you want to train the AI
-model = train(train_ds, val_ds, epochs)
+    #comment this when you want to train the AI
+    #model = tf.keras.models.load_model("models/model_3.h5")
 
-#comment this when you want to train the AI
-#model = tf.keras.models.load_model("models/model_3.h5")
+    class_names = train_ds.class_names
 
-class_names = train_ds.class_names
-
-# import a random apple picture and try to predict it using the neural network
-apple_path = "img/index.jpg"
+    # import a random apple picture and try to predict it using the neural network
+    apple_path = "img/index.jpg"
 
 
-img = tf.keras.utils.load_img(
-    apple_path, target_size=(img_height, img_width)
-)
-img_array = tf.keras.utils.img_to_array(img)
-img_array = tf.expand_dims(img_array, 0) # Create a batch
+    img = tf.keras.utils.load_img(
+        apple_path, target_size=(img_height, img_width)
+    )
+    img_array = tf.keras.utils.img_to_array(img)
+    img_array = tf.expand_dims(img_array, 0) # Create a batch
 
-predictions = model.predict(img_array)
-score = tf.nn.softmax(predictions[0])
+    predictions = model.predict(img_array)
+    score = tf.nn.softmax(predictions[0])
 
-print(
-    "This image most likely belongs to {} with a {:.2f} percent confidence."
-    .format(class_names[np.argmax(score)], 100 * np.max(score))
-)
+    print(
+        "This image most likely belongs to {} with a {:.2f} percent confidence."
+        .format(class_names[np.argmax(score)], 100 * np.max(score))
+    )
+
+def res_train(epochs, last_epoch):
+    resume_training(train_ds, val_ds,epochs, last_epoch)
+
+
+res_train(500,7)

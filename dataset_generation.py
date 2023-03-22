@@ -44,19 +44,20 @@ def network(num_classes):
     model = Sequential([
         data_augmentation,
         layers.Rescaling(1. / 255, input_shape=(img_height, img_width, 3)),
-        layers.Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation='relu'),
+        layers.Conv2D(16, (5, 5), strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
-        layers.Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation='relu'),
+        layers.Conv2D(32, (5, 5), strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
         layers.Conv2D(64, (5, 5), strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
         layers.Conv2D(128, (5, 5), strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
         layers.Flatten(),
-        layers.Dense(1024, activation=tf.keras.activations.relu),
+        layers.Dense(1024, activation="relu"),
         layers.Dropout(0.2),
-        layers.Dense(num_classes),
-        layers.Dropout(0.2)
+        layers.Dense(256, activation="relu"),
+        layers.Dropout(0.2),
+        layers.Dense(num_classes, activation="softmax")
     ])
     return model
 
@@ -92,7 +93,7 @@ def train(train_ds, val_ds, epochs, plot=False):
 
     # compile the model
     model.compile(optimizer='adam',
-                  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                  loss=tf.metrics.sparse_categorical_crossentropy,
                   metrics=['accuracy'])
 
     model.summary()
@@ -149,4 +150,28 @@ def plot_data(epochs):
     plt.title('Training and Validation Loss')
     plt.show()
 
-#plot_data(32)
+def resume_training(train_ds, val_ds, epochs, last_epoch):
+    checkpoint_dir = "models/checkpoints_RGB_1"
+    log_dir="boards/"
+
+    model = keras.models.load_model(f"models/checkpoints_RGB_1/model_epoch_{last_epoch:02d}.h5")
+
+    csv_logger = CSVLogger('training.log', separator=',', append=True)
+    tensorboard_callback=keras.callbacks.TensorBoard(log_dir=log_dir,histogram_freq=1)
+
+    model_checkpoints = tf.keras.callbacks.ModelCheckpoint(
+        filepath="models/checkpoints_RGB_1/model_epoch_{epoch:02d}.h5",
+        monitor='val_loss',
+        save_freq='epoch',
+        verbose=0
+    )
+
+    model.fit(
+        train_ds,
+        validation_data=val_ds,
+        epochs=epochs,
+        initial_epoch=last_epoch,
+        callbacks=[model_checkpoints, csv_logger, tensorboard_callback]
+    )
+
+plot_data(54)
