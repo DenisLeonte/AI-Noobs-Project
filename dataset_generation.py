@@ -174,4 +174,4 @@ def resume_training(train_ds, val_ds, epochs, last_epoch):
         callbacks=[model_checkpoints, csv_logger, tensorboard_callback]
     )
 
-plot_data(54)
+#plot_data(54)
