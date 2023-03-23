@@ -1,11 +1,12 @@
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
 import sys
-
+from AI_helper import AI_Helper
 
 class Window(QWidget):
     def __init__(self):
         super().__init__()
+        self.helper = AI_Helper()
 
         self.setWindowTitle("Artificial Intelligence")
         # self.view = QListWidget()
@@ -50,10 +51,7 @@ class Window(QWidget):
 
     def checkImage(self):
         if not self.text.text().__eq__("File Location"):
-            self.text1.setText("Banana")
-
-
-
+            self.text1.setText(self.helper.predict_image(self.text.text()))
 
 text = "File Location"
 

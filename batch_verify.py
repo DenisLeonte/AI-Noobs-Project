@@ -1,11 +1,10 @@
 import tensorflow as tf
 from model_generation import img_height,img_width
 import numpy as np
-import cv2
 
 def verify(epochs, image_paths, correct_answers = [""], verbose = False):
 	if len(image_paths) != len(correct_answers):
-		raise Exception("Images and Answer have different lenght!")
+		raise Exception("Images and Answer have different length!")
 	i=0
 	images = []
 	for image_path in image_paths:
