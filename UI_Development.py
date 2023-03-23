@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
 import sys
-from AI_helper import init_AI_helper, predict_image
+from AI_helper import AI_Helper
 
 class Window(QWidget):
     def __init__(self):
