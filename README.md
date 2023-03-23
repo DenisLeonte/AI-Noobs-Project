@@ -11,10 +11,11 @@ Datasets:
 
 Articles:
 - https://ieeexplore.ieee.org/abstract/document/935854
+- https://www.researchgate.net/publication/321475443_Fruit_recognition_from_images_using_deep_learning
 
 Frameworks:
 -Tensorflow
--kivy
+-PyQt6
 
 Roles:
 

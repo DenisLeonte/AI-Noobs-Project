@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
 import sys
-
+from AI_helper import init_AI_helper, predict_image
 
 class Window(QWidget):
     def __init__(self):
@@ -40,7 +40,13 @@ class Window(QWidget):
         self.label.setScaledContents(True)
         self.label.setFixedSize(700, 650)
 
+        self.text.setText("Loading")
+        rez = predict_image(imagePath)
+        self.text.setText(rez)
+        print(imagePath)
 
+
+init_AI_helper()
 text = "Print test"
 App = QApplication(sys.argv)
 window = Window()
