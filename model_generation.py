@@ -18,14 +18,15 @@ img_height = 100
 img_width = 100
 batch_size = 64
 
-img_path = "img/Fruit_Flower_Veg"
+train_img_path = "img/dataset/train"
+test_img_path = "img/dataset/test"
 
 # take 80% of the images and use them for training
 def init_datasets():
     random.seed(time.time())
     seed = random.randint(0, 999999)
     train_ds = tf.keras.utils.image_dataset_from_directory(
-        img_path,
+        train_img_path,
         validation_split=0.2,
         subset="training",
         seed=seed,
@@ -35,14 +36,21 @@ def init_datasets():
 
     # take 20% and use them for validation
     val_ds = tf.keras.utils.image_dataset_from_directory(
-        img_path,
+        train_img_path,
         validation_split=0.2,
         subset="validation",
         seed=seed,
         image_size=(img_height, img_width),
         batch_size=batch_size
     )
-    return (train_ds, val_ds)
+
+    test_ds = tf.keras.utils.image_dataset_from_directory(
+        test_img_path,
+        seed=seed,
+        image_size=(img_height,img_width),
+        batch_size=batch_size
+    )
+    return (train_ds, val_ds, test_ds)
 
 
 def augment_image(img):
@@ -66,7 +74,7 @@ def network(num_classes):
     model = Sequential([
         data_augmentation,
         layers.Rescaling(1. / 255, input_shape=(img_height, img_width, 3)),
-        layers.Conv2D(16, (5, 5), strides=(1, 1), padding='same', activation='relu'),
+        layers.Conv2D(32, (5, 5), strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
         layers.Conv2D(32, (5, 5), strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
@@ -84,7 +92,7 @@ def network(num_classes):
     return model
 
 def train(epochs):
-    (train_ds,val_ds) = init_datasets()
+    (train_ds,val_ds, test_ds) = init_datasets()
 
     class_names = train_ds.class_names
     #print(class_names)
@@ -113,17 +121,17 @@ def train(epochs):
     model.summary()
 
     model_checkpoints = tf.keras.callbacks.ModelCheckpoint(
-        filepath="models/checkpoints_var_4/model_epoch_{epoch:02d}.h5",
+        filepath="models/second_run_checkpoints/model_epoch_{epoch:02d}.h5",
         monitor='val_loss',
         save_freq='epoch',
         verbose=0
     )
 
-    log_dir = "boards/"+ datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = "boards/"+ datetime.now().strftime("Second run")
     tensorboard_callback=keras.callbacks.TensorBoard(log_dir=log_dir,histogram_freq=1)
 
     # start training the neural network
-    csv_logger = CSVLogger('training2.log', separator=',', append=False)
+    csv_logger = CSVLogger('training1.log', separator=',', append=False)
     history = model.fit(
       train_ds,
       validation_data=val_ds,
@@ -131,7 +139,12 @@ def train(epochs):
       callbacks=[model_checkpoints, csv_logger, tensorboard_callback]
     )
 
-    model.save(f'models/model{epochs}.h5')
+    print("Evaluate")
+    result = model.evaluate(test_ds)
+    dict(zip(model.metrics_names, result))
+
+
+    model.save(f'models/model1{epochs}.h5')
 
 
 def plot_data(epochs):
