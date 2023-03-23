@@ -1,5 +1,5 @@
 import tensorflow as tf
-from dataset_generation import img_height,img_width
+from model_generation import img_height,img_width
 import numpy as np
 import cv2
 

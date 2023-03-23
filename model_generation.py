@@ -18,15 +18,37 @@ img_height = 100
 img_width = 100
 batch_size = 64
 
+img_path = "img/Fruit_Flower_Veg"
+
+# take 80% of the images and use them for training
+def init_datasets():
+    random.seed(time.time())
+    seed = random.randint(0, 999999)
+    train_ds = tf.keras.utils.image_dataset_from_directory(
+        img_path,
+        validation_split=0.2,
+        subset="training",
+        seed=seed,
+        image_size=(img_height, img_width),
+        batch_size=batch_size
+    )
+
+    # take 20% and use them for validation
+    val_ds = tf.keras.utils.image_dataset_from_directory(
+        img_path,
+        validation_split=0.2,
+        subset="validation",
+        seed=seed,
+        image_size=(img_height, img_width),
+        batch_size=batch_size
+    )
+    return (train_ds, val_ds)
+
 
 def augment_image(img):
     img = tf.image.random_saturation(img, 0.9, 1.2)
     img = tf.image.random_hue(img, 0.02)
     return img
-
-
-def checkpoint_name(epoch, logs):
-    return "models/checkpoints/model_weights_epoch{}_valloss{:.4f}.h5".format(epoch, logs['val_loss'])
 
 def network(num_classes):
     data_augmentation = keras.Sequential(
@@ -61,13 +83,8 @@ def network(num_classes):
     ])
     return model
 
-def train(train_ds, val_ds, epochs, plot=False):
-    f = open('models/version.txt')
-    ver_number = int(f.readline())
-    f.close()
-    f = open('models/version.txt', 'w')
-    f.write(f"{ver_number+1}")
-    f.close()
+def train(epochs):
+    (train_ds,val_ds) = init_datasets()
 
     class_names = train_ds.class_names
     #print(class_names)
@@ -77,9 +94,6 @@ def train(train_ds, val_ds, epochs, plot=False):
 
     train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
     val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
-
-    #train_ds = train_ds.map(augment_image)
-    #val_ds = val_ds.map(augment_image)
 
     normalization_layer = layers.Rescaling(1./255)
 
@@ -99,7 +113,7 @@ def train(train_ds, val_ds, epochs, plot=False):
     model.summary()
 
     model_checkpoints = tf.keras.callbacks.ModelCheckpoint(
-        filepath="models/checkpoints_RGB_1/model_epoch_{epoch:02d}.h5",
+        filepath="models/checkpoints_var_4/model_epoch_{epoch:02d}.h5",
         monitor='val_loss',
         save_freq='epoch',
         verbose=0
@@ -109,7 +123,7 @@ def train(train_ds, val_ds, epochs, plot=False):
     tensorboard_callback=keras.callbacks.TensorBoard(log_dir=log_dir,histogram_freq=1)
 
     # start training the neural network
-    csv_logger = CSVLogger('training.log', separator=',', append=False)
+    csv_logger = CSVLogger('training2.log', separator=',', append=False)
     history = model.fit(
       train_ds,
       validation_data=val_ds,
@@ -117,13 +131,8 @@ def train(train_ds, val_ds, epochs, plot=False):
       callbacks=[model_checkpoints, csv_logger, tensorboard_callback]
     )
 
-    # plot some data
-    if plot:
-        plot_data(epochs)
+    model.save(f'models/model{epochs}.h5')
 
-    model.save(f'models/model_{ver_number}.h5')
-
-    return model
 
 def plot_data(epochs):
     log_data = pd.read_csv('training.log', sep=',', engine='python')
@@ -150,13 +159,14 @@ def plot_data(epochs):
     plt.title('Training and Validation Loss')
     plt.show()
 
-def resume_training(train_ds, val_ds, epochs, last_epoch):
+def resume_training(epochs, last_epoch):
+    (train_ds, val_ds) = init_datasets()
     checkpoint_dir = "models/checkpoints_RGB_1"
     log_dir="boards/"
 
     model = keras.models.load_model(f"models/checkpoints_RGB_1/model_epoch_{last_epoch:02d}.h5")
 
-    csv_logger = CSVLogger('training.log', separator=',', append=True)
+    csv_logger = CSVLogger('training1.log', separator=',', append=True)
     tensorboard_callback=keras.callbacks.TensorBoard(log_dir=log_dir,histogram_freq=1)
 
     model_checkpoints = tf.keras.callbacks.ModelCheckpoint(
@@ -173,5 +183,3 @@ def resume_training(train_ds, val_ds, epochs, last_epoch):
         initial_epoch=last_epoch,
         callbacks=[model_checkpoints, csv_logger, tensorboard_callback]
     )
-
-#plot_data(54)
