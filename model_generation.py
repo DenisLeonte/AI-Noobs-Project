@@ -25,20 +25,10 @@ test_img_path = "img/dataset/test"
 def init_datasets():
     random.seed(time.time())
     seed = random.randint(0, 999999)
-    train_ds = tf.keras.utils.image_dataset_from_directory(
+    (train_ds, val_ds) = tf.keras.utils.image_dataset_from_directory(
         train_img_path,
         validation_split=0.2,
-        subset="training",
-        seed=seed,
-        image_size=(img_height, img_width),
-        batch_size=batch_size
-    )
-
-    # take 20% and use them for validation
-    val_ds = tf.keras.utils.image_dataset_from_directory(
-        train_img_path,
-        validation_split=0.2,
-        subset="validation",
+        subset="both",
         seed=seed,
         image_size=(img_height, img_width),
         batch_size=batch_size
@@ -69,16 +59,19 @@ def network(num_classes):
             layers.RandomZoom(0.1)
         ]
     )
-
+    
+    filter_size = (3, 3)
     # build the neural network model
     model = Sequential([
         data_augmentation,
         layers.Rescaling(1. / 255, input_shape=(img_height, img_width, 3)),
-        layers.Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation='relu'),
+        layers.Conv2D(8, filter_size, strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
-        layers.Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation='relu'),
+        layers.Conv2D(32, filter_size, strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
-        layers.Conv2D(128, (3, 3), strides=(1, 1), padding='same', activation='relu'),
+        layers.Conv2D(64, filter_size, strides=(1, 1), padding='same', activation='relu'),
+        layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
+        layers.Conv2D(128, filter_size, strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
         layers.Flatten(),
         layers.Dense(1024, activation="relu"),
@@ -118,7 +111,7 @@ def train(epochs):
 
     model.summary()
 
-    log_dir = "boards/Seventh run"
+    log_dir = "boards/Fifth run-500"
     tensorboard_callback=keras.callbacks.TensorBoard(log_dir=log_dir,histogram_freq=1)
 
     # start training the neural network
@@ -135,7 +128,7 @@ def train(epochs):
     dict(zip(model.metrics_names, result))
 
 
-    model.save(f'models/run7.h5')
+    model.save(f'models/run5-500.h5')
 
 
 def plot_data(epochs):

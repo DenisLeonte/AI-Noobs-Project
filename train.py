@@ -12,5 +12,5 @@ def plot(epochs):
     model_generation.plot_data(epochs)
 
 #res_train(500, 53)
-train(50)
+train(500)
 #plot()
