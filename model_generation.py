@@ -74,13 +74,11 @@ def network(num_classes):
     model = Sequential([
         data_augmentation,
         layers.Rescaling(1. / 255, input_shape=(img_height, img_width, 3)),
-        layers.Conv2D(32, (5, 5), strides=(1, 1), padding='same', activation='relu'),
+        layers.Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
-        layers.Conv2D(32, (5, 5), strides=(1, 1), padding='same', activation='relu'),
+        layers.Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
-        layers.Conv2D(64, (5, 5), strides=(1, 1), padding='same', activation='relu'),
-        layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
-        layers.Conv2D(128, (5, 5), strides=(1, 1), padding='same', activation='relu'),
+        layers.Conv2D(128, (3, 3), strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
         layers.Flatten(),
         layers.Dense(1024, activation="relu"),
@@ -120,23 +118,16 @@ def train(epochs):
 
     model.summary()
 
-    model_checkpoints = tf.keras.callbacks.ModelCheckpoint(
-        filepath="models/second_run_checkpoints/model_epoch_{epoch:02d}.h5",
-        monitor='val_loss',
-        save_freq='epoch',
-        verbose=0
-    )
-
-    log_dir = "boards/"+ datetime.now().strftime("Second run")
+    log_dir = "boards/Seventh run"
     tensorboard_callback=keras.callbacks.TensorBoard(log_dir=log_dir,histogram_freq=1)
 
     # start training the neural network
-    csv_logger = CSVLogger('training1.log', separator=',', append=False)
+    csv_logger = CSVLogger('training.log', separator=',', append=False)
     history = model.fit(
       train_ds,
       validation_data=val_ds,
       epochs=epochs,
-      callbacks=[model_checkpoints, csv_logger, tensorboard_callback]
+      callbacks=[csv_logger, tensorboard_callback]
     )
 
     print("Evaluate")
@@ -144,7 +135,7 @@ def train(epochs):
     dict(zip(model.metrics_names, result))
 
 
-    model.save(f'models/model1{epochs}.h5')
+    model.save(f'models/run7.h5')
 
 
 def plot_data(epochs):
@@ -175,24 +166,17 @@ def plot_data(epochs):
 def resume_training(epochs, last_epoch):
     (train_ds, val_ds) = init_datasets()
     checkpoint_dir = "models/checkpoints_RGB_1"
-    log_dir="boards/"
+    log_dir="boards/resumed run"
 
     model = keras.models.load_model(f"models/checkpoints_RGB_1/model_epoch_{last_epoch:02d}.h5")
 
     csv_logger = CSVLogger('training1.log', separator=',', append=True)
     tensorboard_callback=keras.callbacks.TensorBoard(log_dir=log_dir,histogram_freq=1)
 
-    model_checkpoints = tf.keras.callbacks.ModelCheckpoint(
-        filepath="models/checkpoints_RGB_1/model_epoch_{epoch:02d}.h5",
-        monitor='val_loss',
-        save_freq='epoch',
-        verbose=0
-    )
-
     model.fit(
         train_ds,
         validation_data=val_ds,
         epochs=epochs,
         initial_epoch=last_epoch,
-        callbacks=[model_checkpoints, csv_logger, tensorboard_callback]
+        callbacks=[csv_logger, tensorboard_callback]
     )
