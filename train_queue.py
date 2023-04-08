@@ -31,7 +31,7 @@ model_list.append(Sequential([
         layers.Flatten(),
         layers.Dense(1024, activation="relu"),
         layers.Dropout(0.25),
-        layers.Dense(256, activation="relu"),
+        layers.Dense(512, activation="relu"),
         layers.Dropout(0.25),
         layers.Dense(6, activation="softmax")
     ]))
@@ -50,7 +50,7 @@ model_list.append(Sequential([
         layers.Flatten(),
         layers.Dense(1024, activation="relu"),
         layers.Dropout(0.30),
-        layers.Dense(256, activation="relu"),
+        layers.Dense(512, activation="relu"),
         layers.Dropout(0.30),
         layers.Dense(6, activation="softmax")
     ]))
@@ -69,7 +69,7 @@ model_list.append(Sequential([
         layers.Flatten(),
         layers.Dense(1024, activation="relu"),
         layers.Dropout(0.27),
-        layers.Dense(256, activation="relu"),
+        layers.Dense(512, activation="relu"),
         layers.Dropout(0.27),
         layers.Dense(6, activation="softmax")
     ]))
@@ -88,7 +88,7 @@ model_list.append(Sequential([
         layers.Flatten(),
         layers.Dense(1024, activation="relu"),
         layers.Dropout(0.17),
-        layers.Dense(256, activation="relu"),
+        layers.Dense(512, activation="relu"),
         layers.Dropout(0.17),
         layers.Dense(6, activation="softmax")
     ]))
@@ -107,7 +107,7 @@ model_list.append(Sequential([
         layers.Flatten(),
         layers.Dense(1024, activation="relu"),
         layers.Dropout(0.25),
-        layers.Dense(256, activation="relu"),
+        layers.Dense(512, activation="relu"),
         layers.Dropout(0.25),
         layers.Dense(6, activation="softmax")
     ]))
