@@ -129,7 +129,7 @@ def network(num_classes):
         layers.Conv2D(128, filter_size, strides=(1, 1), padding='same', activation='relu'),
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
         layers.Flatten(),
-        layers.Dense(1024, activation="relu"),
+        layers.Dense(2048, activation="relu"),
         layers.Dropout(0.2),
         layers.Dense(256, activation="relu"),
         layers.Dropout(0.2),
@@ -137,10 +137,13 @@ def network(num_classes):
     ])
     return model
 
-def train(epochs):
+def train(epochs, pre_model=None, datasets=None):
     run_num = init_excel()
     print(f"run number: {run_num}")
-    (train_ds,val_ds, test_ds) = init_datasets()
+    if datasets is None:
+        (train_ds,val_ds, test_ds) = init_datasets()
+    else:
+        (train_ds,val_ds, test_ds) = datasets
 
     class_names = train_ds.class_names
     #print(class_names)
@@ -159,7 +162,11 @@ def train(epochs):
 
     num_classes = len(class_names)
 
-    model = network(num_classes)
+    if pre_model is not None:
+        model = network(num_classes)
+    else:
+        model = pre_model
+
     # compile the model
     model.compile(optimizer='adam',
                   loss=tf.metrics.sparse_categorical_crossentropy,
