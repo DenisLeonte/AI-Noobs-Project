@@ -7,6 +7,7 @@ import numpy as np
 import time
 import random
 import pandas as pd
+import openpyxl
 
 from matplotlib import pyplot as plt
 from tensorflow import keras
@@ -20,6 +21,58 @@ batch_size = 64
 
 train_img_path = "img/dataset/train"
 test_img_path = "img/dataset/test"
+excel_path = "AI data recover.xlsx"
+
+
+class MetricsLogger(keras.callbacks.Callback):
+    def __init__(self):
+        super().__init__()
+        self.train_start_time = 0.0
+        self.metrics = {
+            'train_loss': [],
+            'train_accuracy': [],
+            'val_loss': [],
+            'val_accuracy': [],
+            'train_time': 0
+        }
+
+    def on_train_begin(self, logs=None):
+        self.train_start_time = time.time()
+
+    def on_train_end(self, logs=None):
+        self.metrics['train_time'] = int(time.time() - self.train_start_time)
+
+    def on_epoch_end(self, epoch, logs=None):
+        self.metrics['train_loss'].append(logs.get('loss'))
+        self.metrics['train_accuracy'].append(logs.get('accuracy'))
+        self.metrics['val_loss'].append(logs.get('val_loss'))
+        self.metrics['val_accuracy'].append(logs.get('val_accuracy'))
+
+    def get_metrics(self):
+        return self.metrics
+
+def init_excel():
+    new_run_number = 0
+    i = 1
+    workbook = openpyxl.load_workbook(excel_path)
+    worksheet = workbook.worksheets[0]
+    while True:
+        val = worksheet.cell(row=i,column=1).value
+        if val is None:
+            break
+        new_run_number+=1
+        i+=1
+    return new_run_number
+
+def write_to_excel(run_number, train_acc, train_loss, val_acc, val_loss, eval_acc, eval_loss, train_time):
+    val_list = [run_number,train_acc,train_loss,val_acc,val_loss,eval_acc,eval_loss,train_time]
+    workbook = openpyxl.load_workbook(excel_path)
+    worksheet = workbook.worksheets[0]
+    for i, val in enumerate(val_list,start=1):
+        worksheet.cell(row = run_number+1,column=i).value = val
+
+    workbook.save("AI data recover.xlsx")
+
 
 # take 80% of the images and use them for training
 def init_datasets():
@@ -83,6 +136,8 @@ def network(num_classes):
     return model
 
 def train(epochs):
+    run_num = init_excel()
+    print(f"run number: {run_num}")
     (train_ds,val_ds, test_ds) = init_datasets()
 
     class_names = train_ds.class_names
@@ -111,24 +166,36 @@ def train(epochs):
 
     model.summary()
 
-    log_dir = "boards/Fifth run-500"
+
+    log_dir = f"boards/run {run_num}"
     tensorboard_callback=keras.callbacks.TensorBoard(log_dir=log_dir,histogram_freq=1)
 
+    custom_metrics = MetricsLogger()
     # start training the neural network
     csv_logger = CSVLogger('training.log', separator=',', append=False)
     history = model.fit(
       train_ds,
       validation_data=val_ds,
       epochs=epochs,
-      callbacks=[csv_logger, tensorboard_callback]
+      callbacks=[csv_logger,
+                 tensorboard_callback,
+                 custom_metrics]
     )
 
     print("Evaluate")
     result = model.evaluate(test_ds)
-    dict(zip(model.metrics_names, result))
+    eval_res = dict(zip(model.metrics_names, result))
+    metrics = custom_metrics.get_metrics()
 
-
-    model.save(f'models/run5-500.h5')
+    model.save(f'models/run{run_num}.h5')
+    write_to_excel(run_num,
+                   "{:.2%}".format(metrics.get("train_accuracy")[-1]),
+                   "{:.2%}".format(metrics.get("train_loss")[-1]),
+                   "{:.2%}".format(metrics.get("val_accuracy")[-1]),
+                   "{:.2%}".format(metrics.get("val_loss")[-1]),
+                   "{:.2%}".format(eval_res.get("accuracy")),
+                   "{:.2%}".format(eval_res.get("loss")),
+                   metrics.get("train_time"))
 
 
 def plot_data(epochs):
