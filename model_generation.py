@@ -162,7 +162,7 @@ def train(epochs, pre_model=None, datasets=None):
 
     num_classes = len(class_names)
 
-    if pre_model is not None:
+    if pre_model is None:
         model = network(num_classes)
     else:
         model = pre_model
@@ -203,7 +203,7 @@ def train(epochs, pre_model=None, datasets=None):
                    float(round(metrics.get("val_loss")[-1],4)),
                    float(round(eval_res.get("accuracy"),4)),
                    float(round(eval_res.get("loss"),4)),
-                   metrics.get("train_time"),
+                   metrics.get("train_time")//epochs,
                    parse_layers(model.layers))
 
     repo = git.Repo("~/AINOOBS2/AI-Noobs-Project")

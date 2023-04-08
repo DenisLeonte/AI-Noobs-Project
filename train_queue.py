@@ -112,10 +112,6 @@ model_list.append(Sequential([
         layers.Dense(6, activation="softmax")
     ]))
 
-
-
-
-
 datasets = model_generation.init_datasets()
 
 for i, model in enumerate(model_list,start=1):
