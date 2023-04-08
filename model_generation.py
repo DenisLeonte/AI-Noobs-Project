@@ -199,10 +199,11 @@ def train(epochs):
                    metrics.get("train_time"))
 
     repo = git.Repo("~/AINOOBS2/AI-Noobs-Project")
+    repo.git.checkout("runs")
     repo.git.add(all=True)
     repo.index.commit(f"Run #{run_num}")
     origin = repo.remote(name = "origin")
-    origin.push(branch_name = "runs")
+    origin.push()
 
 
 def plot_data(epochs):
