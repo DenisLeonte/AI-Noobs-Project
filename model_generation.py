@@ -9,6 +9,7 @@ import random
 import pandas as pd
 import openpyxl
 import git
+from layer_parser import parse_layers
 
 from matplotlib import pyplot as plt
 from tensorflow import keras
@@ -65,8 +66,8 @@ def init_excel():
         i+=1
     return new_run_number
 
-def write_to_excel(run_number, train_acc, train_loss, val_acc, val_loss, eval_acc, eval_loss, train_time):
-    val_list = [run_number,train_acc,train_loss,val_acc,val_loss,eval_acc,eval_loss,train_time]
+def write_to_excel(run_number, train_acc, train_loss, val_acc, val_loss, eval_acc, eval_loss, train_time, description):
+    val_list = [run_number,train_acc,train_loss,val_acc,val_loss,eval_acc,eval_loss,train_time, description]
     workbook = openpyxl.load_workbook(excel_path)
     worksheet = workbook.worksheets[0]
     for i, val in enumerate(val_list,start=1):
@@ -159,7 +160,6 @@ def train(epochs):
     num_classes = len(class_names)
 
     model = network(num_classes)
-
     # compile the model
     model.compile(optimizer='adam',
                   loss=tf.metrics.sparse_categorical_crossentropy,
@@ -196,7 +196,8 @@ def train(epochs):
                    float(round(metrics.get("val_loss")[-1],4)),
                    float(round(eval_res.get("accuracy"),4)),
                    float(round(eval_res.get("loss"),4)),
-                   metrics.get("train_time"))
+                   metrics.get("train_time"),
+                   parse_layers(model.layers))
 
     repo = git.Repo("~/AINOOBS2/AI-Noobs-Project")
     repo.git.checkout("runs")
