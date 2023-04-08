@@ -8,6 +8,7 @@ import time
 import random
 import pandas as pd
 import openpyxl
+import git
 
 from matplotlib import pyplot as plt
 from tensorflow import keras
@@ -189,13 +190,19 @@ def train(epochs):
 
     model.save(f'models/run{run_num}.h5')
     write_to_excel(run_num,
-                   "{:.2%}".format(metrics.get("train_accuracy")[-1]),
-                   "{:.2%}".format(metrics.get("train_loss")[-1]),
-                   "{:.2%}".format(metrics.get("val_accuracy")[-1]),
-                   "{:.2%}".format(metrics.get("val_loss")[-1]),
-                   "{:.2%}".format(eval_res.get("accuracy")),
-                   "{:.2%}".format(eval_res.get("loss")),
+                   float(round(metrics.get("train_accuracy")[-1],4)),
+                   float(round(metrics.get("train_loss")[-1],4)),
+                   float(round(metrics.get("val_accuracy")[-1],4)),
+                   float(round(metrics.get("val_loss")[-1],4)),
+                   float(round(eval_res.get("accuracy"),4)),
+                   float(round(eval_res.get("loss"),4)),
                    metrics.get("train_time"))
+
+    repo = git.Repo("~/AINOOBS2/AI-Noobs-Project")
+    repo.git.add(all=True)
+    repo.index.commit(f"Run #{run_num}")
+    origin = repo.remote(name = "origin")
+    origin.push(branch_name = "runs")
 
 
 def plot_data(epochs):
