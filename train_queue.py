@@ -30,9 +30,9 @@ model_list.append(Sequential([
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
         layers.Flatten(),
         layers.Dense(1024, activation="relu"),
-        layers.Dropout(0.25),
+        layers.Dropout(0.28),
         layers.Dense(512, activation="relu"),
-        layers.Dropout(0.25),
+        layers.Dropout(0.28),
         layers.Dense(6, activation="softmax")
     ]))
 
@@ -49,9 +49,9 @@ model_list.append(Sequential([
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
         layers.Flatten(),
         layers.Dense(1024, activation="relu"),
-        layers.Dropout(0.30),
+        layers.Dropout(0.26),
         layers.Dense(512, activation="relu"),
-        layers.Dropout(0.30),
+        layers.Dropout(0.26),
         layers.Dense(6, activation="softmax")
     ]))
 
@@ -68,9 +68,9 @@ model_list.append(Sequential([
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
         layers.Flatten(),
         layers.Dense(1024, activation="relu"),
-        layers.Dropout(0.27),
+        layers.Dropout(0.29),
         layers.Dense(512, activation="relu"),
-        layers.Dropout(0.27),
+        layers.Dropout(0.29),
         layers.Dense(6, activation="softmax")
     ]))
 
@@ -87,9 +87,9 @@ model_list.append(Sequential([
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
         layers.Flatten(),
         layers.Dense(1024, activation="relu"),
-        layers.Dropout(0.17),
+        layers.Dropout(0.285),
         layers.Dense(512, activation="relu"),
-        layers.Dropout(0.17),
+        layers.Dropout(0.285),
         layers.Dense(6, activation="softmax")
     ]))
 
@@ -106,9 +106,9 @@ model_list.append(Sequential([
         layers.MaxPooling2D((2, 2), strides=(2, 2), padding='valid'),
         layers.Flatten(),
         layers.Dense(1024, activation="relu"),
-        layers.Dropout(0.25),
+        layers.Dropout(0.275),
         layers.Dense(512, activation="relu"),
-        layers.Dropout(0.25),
+        layers.Dropout(0.275),
         layers.Dense(6, activation="softmax")
     ]))
 
